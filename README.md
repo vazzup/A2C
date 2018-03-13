@@ -1,2 +1,2 @@
-# Asynchronous Advantage Actor Critic
-An implementation of A3C algorithm in PyTorch
+# Advantage Actor Critic
+An implementation of A2C algorithm in PyTorch
