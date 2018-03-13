@@ -1,4 +1,7 @@
+# Ignore all swap files
 ~*
 *~
 *.swp
 
+# Ignore Pycache
+__pycache__/

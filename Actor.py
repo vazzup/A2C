@@ -2,8 +2,6 @@ import gym
 import math
 import random
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 from collections import namedtuple
 from itertools import count
 from copy import deepcopy
@@ -16,7 +14,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torchvision.transforms as T
 
-class A3CActor(nn.module):
+class A3CActor(nn.Module):
 
     def __init__(self, num_inputs, num_outputs, hidden=64):
         super(A3CActor, self).__init__()
@@ -34,8 +32,8 @@ class A3CActor(nn.module):
         self.backup()
 
     def backup(self):
-        for i in range(len(self.module_list_current))
-            self.module_list_old[i] = copy.deepcopy(self.module_list_current[i])
+        for i in range(len(self.module_list_current)):
+            self.module_list_old[i] = deepcopy(self.module_list_current[i])
 
     def forward(self, x, old=False):
         if old:
@@ -43,7 +41,7 @@ class A3CActor(nn.module):
             x = F.tanh(self.module_list_old[1](x))
 
             action_mean = self.module_list_old[2](x)
-            action_log_std = self.module_list_old[3]3.expand_as(action_mean)
+            action_log_std = self.module_list_old[3].expand_as(action_mean)
             action_std = torch.exp(action_log_std)
 
             value = self.module_list_old[4](x)
