@@ -21,6 +21,10 @@ from Actor import A3CActor
 from replay_memory import Memory
 from running_state import ZFilter
 
+import plotly
+import plotly.graph_objs as go
+from plotly.graph_objs import Layout,Scatter
+
 # Global Variable
 torch.set_default_tensor_type('torch.DoubleTensor')
 PI = torch.DoubleTensor([3.1415926])
@@ -85,7 +89,7 @@ def update_params(batch, actor_net, actor_optimizer, gamma, tau, clip_epsilon):
     vpredclipped = values_old + torch.clamp(values - values_old, -clip_epsilon, clip_epsilon)
     vf_loss2 = (vpredclipped - targets).pow(2.)
     vf_loss = 0.5 * torch.max(vf_loss1, vf_loss2).mean()
-    
+
     total_loss = policy_surr + vf_loss
     total_loss.backward()
     torch.nn.utils.clip_grad_norm(actor_net.parameters(), 40)
@@ -109,7 +113,7 @@ def main(gamma=0.995, env_name="Walker2d-v2", tau=0.97, number_of_batches=500,\
     running_state = ZFilter((num_inputs,), clip=5)
     running_reward = ZFilter((1, ), demean=False, clip=10)
     episode_lengths = []
-
+    plot_rew = []
     for i_episode in range(number_of_batches):
         memory = Memory()
 
@@ -147,10 +151,21 @@ def main(gamma=0.995, env_name="Walker2d-v2", tau=0.97, number_of_batches=500,\
 
         reward_batch /= num_episodes
         batch = memory.sample()
+        plot_rew.append(reward_batch)
         update_params(batch, actor_net, actor_optimizer, gamma, tau, clip_epsilon)
         if i_episode % log_interval == 0:
             print('Episode {}\t Last reward: {}\tAverage reward {:.2f}'.format(
                 i_episode, reward_sum, reward_batch))
+
+    plot_epi = []
+    for i in range (number_of_batches):
+        plot_epi.append(i)
+    trace = go.Scatter( x = plot_epi, y = plot_rew)
+    layout = go.Layout(title='A2C',xaxis=dict(title='Episodes', titlefont=dict(family='Courier New, monospace',size=18,color='#7f7f7f')),
+    yaxis=dict(title='Average Reward', titlefont=dict(family='Courier New, monospace',size=18,color='#7f7f7f')))
+
+    plotly.offline.plot({"data": [trace], "layout": layout},filename='PPO.html',image='jpeg')
+
     return
 
 if __name__ == '__main__':
@@ -161,7 +176,7 @@ if __name__ == '__main__':
                         help='name of the environment to run')
     parser.add_argument('--tau', type=float, default=0.97, metavar='G',
                         help='gae (default: 0.97)')
-    parser.add_argument('--number-of-batches', type=int, default=500, metavar='N',
+    parser.add_argument('--number-of-batches', type=int, default=1000, metavar='N',
                         help='number of batches (default: 500)')
     parser.add_argument('--batch-size', type=int, default=5000, metavar='N',
                         help='batch size (default: 5000)')
